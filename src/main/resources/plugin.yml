@@ -1,0 +1,21 @@
+name: DKSGBlock
+version: '${version}'
+main: net.kunmc.lab.dksgblock.DKSGBlock
+api-version: 1.16
+depend: [ WorldEdit , EasyStructure ]
+authors: [ MORIMORI0317 ]
+description: The Ikisugi big block plugin...
+
+commands:
+  dksg:
+    description: DKSGBlock command
+    usage: /dksg
+    aliases: dksgblock
+    permission: dksg.create
+permissions:
+  dksg.use:
+    description: You can use DKSG Block
+    default: true
+  dksg.create:
+    description: You can create DKSG Block
+    default: op
