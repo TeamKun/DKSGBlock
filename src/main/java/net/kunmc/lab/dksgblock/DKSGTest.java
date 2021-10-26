@@ -25,7 +25,7 @@ public class DKSGTest {
                 for (int y = 0; y < 16; y++) {
                     int col = image.getRGB(x, y);
                     if (col != 0)
-                        setBlock(x, y, 0, location, world, "minecraft:" + getMostColorBlock(col));
+                        setBlock(x, 0, y, location, world, "minecraft:" + getMostColorBlock(col));
                 }
             }
             System.out.println("test");
@@ -40,7 +40,7 @@ public class DKSGTest {
     }
 
     private static String getMostColorBlock(int color) throws FileNotFoundException {
-        JsonObject jo = GSON.fromJson(new FileReader("colors.json"), JsonObject.class);
+        JsonObject jo = GSON.fromJson(new FileReader("colors.json"), JsonObject.class).getAsJsonObject("UP");
         String[] colorBlocks = jo.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()).toArray(new String[]{});
         String str = ColorUtil.getApproximateColorObject(color, colorBlocks, n -> jo.get(n).getAsInt());
         return str;
