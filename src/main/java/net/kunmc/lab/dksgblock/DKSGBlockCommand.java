@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,11 @@ public class DKSGBlockCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(I18n.format("command.error.playeronly"));
             return true;
         }
+        if (args.length == 0) {
+            sender.sendMessage("引数が足りねぇぜ");
+            return true;
+        }
+
         //Material.valueOf("")
     /*    JsonObject ja = new JsonObject();
         BlockType.REGISTRY.iterator().forEachRemaining(n -> {
@@ -47,14 +53,27 @@ public class DKSGBlockCommand implements CommandExecutor, TabCompleter {
         } catch (IOException e) {
             e.printStackTrace();
         }*/
-        DKSGTest.please(((Player) sender).getLocation(), ((Player) sender).getWorld());
-        return false;
+        File generates = new File("generates");
+        if (!generates.toPath().resolve(args[0] + ".json").toFile().exists()) {
+            sender.sendMessage("ファイルがないです");
+            return true;
+        }
+
+        try {
+            DKSGGen.please(((Player) sender).getLocation(), ((Player) sender).getWorld(), args[0]);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return true;
     }
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         List<String> strs = new ArrayList<>();
-        strs.add("ftize");
+        File generates = new File("generates");
+        for (File file : generates.listFiles()) {
+            strs.add(file.getName().split("\\.")[0]);
+        }
         return strs;
     }
 }
