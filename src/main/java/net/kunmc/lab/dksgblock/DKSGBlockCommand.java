@@ -1,16 +1,22 @@
 package net.kunmc.lab.dksgblock;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.sk89q.worldedit.blocks.BaseItemStack;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.world.item.ItemTypes;
+import net.teamfruit.easystructure.ESUtils;
 import net.teamfruit.easystructure.I18n;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,45 +41,58 @@ public class DKSGBlockCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        //Material.valueOf("")
-    /*    JsonObject ja = new JsonObject();
-        BlockType.REGISTRY.iterator().forEachRemaining(n -> {
-            String str = n.getDefaultState().getAsString();
-            String[] sts = str.split("\\[");
-            if (sts.length >= 2) {
-                str = sts[1].split("\\]")[0];
-            } else {
-                str = "";
-            }
-            ja.addProperty(n.getId(), str);
-        });
-        String str = GSON.toJson(ja);
-        try {
-            Files.write(Paths.get("blocksstates.json"), str.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
-        File generates = new File("generates");
-        if (!generates.toPath().resolve(args[0] + ".json").toFile().exists()) {
-            sender.sendMessage("ファイルがないです");
-            return true;
+        com.sk89q.worldedit.entity.Player wPlayer = BukkitAdapter.adapt(((Player) sender).getPlayer());
+
+        switch (args[0]) {
+            case "generate":
+                try {
+
+                    Bukkit.getScheduler().runTaskAsynchronously(JavaPlugin.getPlugin(DKSGBlock.class), () -> {
+                        try {
+                            DKSGSave.save(sender, ((Player) sender).getLocation(), ((Player) sender).getWorld());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                sender.sendMessage("Saved!");
+                break;
+            case "get":
+                if (args.length == 1) {
+                    sender.sendMessage("ブロックIDを引数に加えてください");
+                    return true;
+                }
+                String name = DKSGBlock.MAP.get(args[1]);
+                if (name == null) {
+                    sender.sendMessage("存在しない、またはデータがないブロックIDです");
+                    return true;
+                }
+
+                BaseItemStack itemStack = new BaseItemStack(ItemTypes.BLAZE_ROD, ESUtils.createWandItem(name, args[1]), 1);
+                wPlayer.giveItem(itemStack);
+                break;
         }
 
-        try {
-            DKSGGen.please(((Player) sender).getLocation(), ((Player) sender).getWorld(), args[0]);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+
         return true;
     }
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        List<String> strs = new ArrayList<>();
-        File generates = new File("generates");
-        for (File file : generates.listFiles()) {
-            strs.add(file.getName().split("\\.")[0]);
+
+        if (args.length == 1) {
+            return Lists.newArrayList("get", "generate");
         }
-        return strs;
+
+        if (args.length == 2 && "get".equals(args[0])) {
+            return new ArrayList<>(DKSGBlock.MAP.keySet());
+        }
+
+        return Lists.newArrayList();
     }
+
+
 }

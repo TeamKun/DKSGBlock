@@ -3,37 +3,48 @@ package net.kunmc.lab.dksgblock;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.bukkit.Axis;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import com.sk89q.worldedit.math.Vector3;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Orientable;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileReader;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class DKSGGen {
     private static final Gson GSON = new Gson();
 
-    public static void please(@NotNull Location location, @NotNull World world, String name) throws Exception {
+    public static void please(@NotNull Location location, @NotNull World world, String name, Consumer<Vector3> last) throws Exception {
         File generates = new File("generates", name + ".json");
         JsonObject jo = GSON.fromJson(new FileReader(generates), JsonObject.class);
         JsonObject parret = jo.getAsJsonObject("parret");
         JsonObject entrys = jo.getAsJsonObject("entry");
+        int mx = 0;
+        int my = 0;
+        int mz = 0;
+
         for (Map.Entry<String, JsonElement> en : entrys.entrySet()) {
             String[] strs = en.getKey().split(",");
             int x = Integer.parseInt(strs[0]);
             int y = Integer.parseInt(strs[1]);
             int z = Integer.parseInt(strs[2]);
+            mx = Math.max(mx, x);
+            my = Math.max(my, y);
+            mz = Math.max(mz, z);
             BlockStateble bp = getParret(parret, en.getValue().getAsInt());
-            if (bp != null && !bp.getName().isEmpty())
-                setBlock(x, y, z, location, world, bp.getName(), bp.getAxis());
+            if (bp != null && !bp.getName().isEmpty()) {
+                Bukkit.getScheduler().runTask(JavaPlugin.getPlugin(DKSGBlock.class), () -> {
+                    setBlock(x, y, z, location, world, bp.getName(), bp.getAxis());
+                });
+            }
         }
+        last.accept(Vector3.at(mx, my, mz));
     }
 
     private static BlockStateble getParret(JsonObject parret, int num) {
