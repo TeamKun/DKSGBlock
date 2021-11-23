@@ -8,6 +8,7 @@ import com.sk89q.worldedit.world.item.ItemTypes;
 import net.teamfruit.easystructure.ESUtils;
 import net.teamfruit.easystructure.I18n;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,6 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,12 +46,12 @@ public class DKSGBlockCommand implements CommandExecutor, TabCompleter {
         com.sk89q.worldedit.entity.Player wPlayer = BukkitAdapter.adapt(((Player) sender).getPlayer());
 
         switch (args[0]) {
-            case "generate":
+            case "gen":
                 try {
-
+                    Location location = ((Player) sender).getLocation();
                     Bukkit.getScheduler().runTaskAsynchronously(JavaPlugin.getPlugin(DKSGBlock.class), () -> {
                         try {
-                            DKSGSave.save(sender, ((Player) sender).getLocation(), ((Player) sender).getWorld());
+                            DKSGSave.save(sender, location, ((Player) sender).getWorld());
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -74,6 +76,19 @@ public class DKSGBlockCommand implements CommandExecutor, TabCompleter {
                 BaseItemStack itemStack = new BaseItemStack(ItemTypes.BLAZE_ROD, ESUtils.createWandItem(name, args[1]), 1);
                 wPlayer.giveItem(itemStack);
                 break;
+            case "place":
+                File generates = new File("generates");
+                if (!generates.toPath().resolve(args[1] + ".json").toFile().exists()) {
+                    sender.sendMessage("ファイルがないです");
+                    return true;
+                }
+                try {
+                    DKSGGen.please(((Player) sender).getLocation(), ((Player) sender).getWorld(), args[1], n -> {
+                    });
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                break;
         }
 
 
@@ -84,11 +99,20 @@ public class DKSGBlockCommand implements CommandExecutor, TabCompleter {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
 
         if (args.length == 1) {
-            return Lists.newArrayList("get", "generate");
+            return Lists.newArrayList("get", "gen", "place");
         }
 
         if (args.length == 2 && "get".equals(args[0])) {
             return new ArrayList<>(DKSGBlock.MAP.keySet());
+        }
+
+        if (args.length == 2 && "place".equals(args[0])) {
+            List<String> strs = new ArrayList<>();
+            File generates = new File("generates");
+            for (File file : generates.listFiles()) {
+                strs.add(file.getName().split("\\.")[0]);
+            }
+            return strs;
         }
 
         return Lists.newArrayList();

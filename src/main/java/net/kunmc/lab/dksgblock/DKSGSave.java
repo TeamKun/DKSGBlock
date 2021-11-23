@@ -21,6 +21,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -41,13 +44,17 @@ public class DKSGSave {
         JsonObject map = new JsonObject();
         File fol = new File("generates");
         for (File file : fol.listFiles()) {
+            clearAllBlock(world);
             String name = file.getName().split("\\.")[0];
             System.out.println(name);
             sender.sendMessage("Generate: " + name);
             UUID uuid = UUID.randomUUID();
             map.addProperty(name, uuid.toString());
+            clearAllBlock(world);
             generate(location, world, name);
-            save(sender, uuid.toString());
+            clearAllBlock(world);
+            save(sender, uuid.toString(), BukkitAdapter.adapt(location));
+            clearAllBlock(world);
             Thread.sleep(1);
         }
 
@@ -55,6 +62,14 @@ public class DKSGSave {
             Files.write(Paths.get("map.json"), GSON.toJson(map).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void clearAllBlock(World world) {
+        for (Entity entity : world.getEntities()) {
+            if (entity instanceof FallingBlock || entity instanceof Item) {
+                entity.remove();
+            }
         }
     }
 
@@ -76,10 +91,9 @@ public class DKSGSave {
         });
     }
 
-    public static void save(CommandSender sender, String name) throws Exception {
+    public static void save(CommandSender sender, String name, com.sk89q.worldedit.util.Location loc) throws Exception {
         AbstractPlayerActor wPlayer = BukkitAdapter.adapt(((Player) sender).getPlayer());
         com.sk89q.worldedit.world.World world = wPlayer.getWorld();
-        com.sk89q.worldedit.util.Location loc = wPlayer.getLocation();
 
         LocalSession session = WorldEdit.getInstance().getSessionManager().get(wPlayer);
 
