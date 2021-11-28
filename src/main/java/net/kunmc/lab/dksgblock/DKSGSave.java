@@ -39,6 +39,7 @@ import java.util.UUID;
 public class DKSGSave {
     private static final Gson GSON = new Gson();
     private static Vector3 lastBlock = Vector3.ZERO;
+    private static Vector3 startBlock = Vector3.ZERO;
 
     public static void save(CommandSender sender, @NotNull Location location, @NotNull World world) throws Exception {
         JsonObject map = new JsonObject();
@@ -87,6 +88,8 @@ public class DKSGSave {
             }
         }
         DKSGGen.please(location, world, name, n -> {
+            startBlock = n;
+        }, n -> {
             lastBlock = n;
         });
     }
@@ -99,6 +102,9 @@ public class DKSGSave {
 
         session.getRegionSelector(world).selectPrimary(BlockVector3.at(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), ActorSelectorLimits.forActor(wPlayer));
         session.getRegionSelector(world).selectSecondary(BlockVector3.at(loc.getBlockX() + 16, loc.getBlockY() + 16, loc.getBlockZ() + 16), ActorSelectorLimits.forActor(wPlayer));
+
+        //session.getRegionSelector(world).selectPrimary(BlockVector3.at(startBlock.getX(), startBlock.getY(), startBlock.getZ()).add(BlockVector3.at(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())), ActorSelectorLimits.forActor(wPlayer));
+        //session.getRegionSelector(world).selectSecondary(BlockVector3.at(lastBlock.getX(), lastBlock.getY(), lastBlock.getZ()).add(BlockVector3.at(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())), ActorSelectorLimits.forActor(wPlayer));
 
         Region region = session.getSelection(world);
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region);

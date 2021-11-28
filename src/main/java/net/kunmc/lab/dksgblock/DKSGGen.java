@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 public class DKSGGen {
     private static final Gson GSON = new Gson();
 
-    public static void please(@NotNull Location location, @NotNull World world, String name, Consumer<Vector3> last) throws Exception {
+    public static void please(@NotNull Location location, @NotNull World world, String name, Consumer<Vector3> start, Consumer<Vector3> last) throws Exception {
         File generates = new File("generates", name + ".json");
         JsonObject jo = GSON.fromJson(new FileReader(generates), JsonObject.class);
         JsonObject parret = jo.getAsJsonObject("parret");
@@ -28,6 +28,9 @@ public class DKSGGen {
         int mx = 0;
         int my = 0;
         int mz = 0;
+        int nx = 0;
+        int ny = 0;
+        int nz = 0;
 
         for (Map.Entry<String, JsonElement> en : entrys.entrySet()) {
             String[] strs = en.getKey().split(",");
@@ -37,6 +40,10 @@ public class DKSGGen {
             mx = Math.max(mx, x);
             my = Math.max(my, y);
             mz = Math.max(mz, z);
+
+            nx = Math.min(nx, x);
+            ny = Math.min(ny, y);
+            nz = Math.min(nz, z);
             BlockStateble bp = getParret(parret, en.getValue().getAsInt());
             if (bp != null && !bp.getName().isEmpty()) {
                 Bukkit.getScheduler().runTask(JavaPlugin.getPlugin(DKSGBlock.class), () -> {
@@ -44,6 +51,7 @@ public class DKSGGen {
                 });
             }
         }
+        start.accept(Vector3.at(nx, ny, nz));
         last.accept(Vector3.at(mx, my, mz));
     }
 

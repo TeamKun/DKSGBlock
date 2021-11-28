@@ -84,6 +84,7 @@ public class DKSGBlockCommand implements CommandExecutor, TabCompleter {
                 }
                 try {
                     DKSGGen.please(((Player) sender).getLocation(), ((Player) sender).getWorld(), args[1], n -> {
+                    }, n -> {
                     });
                 } catch (Exception ex) {
                     ex.printStackTrace();
