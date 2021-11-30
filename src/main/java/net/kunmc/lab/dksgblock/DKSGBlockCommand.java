@@ -2,6 +2,8 @@ package net.kunmc.lab.dksgblock;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.IntTag;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.world.item.ItemTypes;
@@ -67,13 +69,17 @@ public class DKSGBlockCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage("ブロックIDを引数に加えてください");
                     return true;
                 }
+                ///give @a minecraft:gray_dye{CustomModelData:256}
                 String name = DKSGBlock.MAP.get(args[1]);
                 if (name == null) {
                     sender.sendMessage("存在しない、またはデータがないブロックIDです");
                     return true;
                 }
-
-                BaseItemStack itemStack = new BaseItemStack(ItemTypes.BLAZE_ROD, ESUtils.createWandItem(name, args[1]), 1);
+                CompoundTag tag = ESUtils.createWandItem(name, args[1]);
+                String val = "minecraft:" + args[1];
+                if (DKSGBlock.RESOURCE_ID.containsKey(val))
+                    tag = tag.createBuilder().put("CustomModelData", new IntTag(DKSGBlock.RESOURCE_ID.get(val))).build();
+                BaseItemStack itemStack = new BaseItemStack(ItemTypes.BLAZE_ROD, tag, 1);
                 wPlayer.giveItem(itemStack);
                 break;
             case "place":

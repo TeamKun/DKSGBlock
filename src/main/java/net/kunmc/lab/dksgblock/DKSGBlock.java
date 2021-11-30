@@ -20,30 +20,41 @@ import java.util.logging.Level;
 public final class DKSGBlock extends JavaPlugin {
     private static final Gson GSON = new Gson();
     public static final Map<String, String> MAP = new HashMap<>();
+    public static final Map<String, Integer> RESOURCE_ID = new HashMap<>();
 
     @Override
     public void onEnable() {
         DKSGBlockCommand.init(this);
-        MAP.clear();
-        InputStream stream = new BufferedInputStream(DKSGBlock.class.getResourceAsStream("/dksgblock/map.json"));
-        JsonObject map = GSON.fromJson(new InputStreamReader(stream), JsonObject.class);
-        Path esFol = JavaPlugin.getPlugin(EasyStructure.class).getDataFolder().toPath().resolve("schematics");
-        esFol.toFile().mkdirs();
-        for (Map.Entry<String, JsonElement> entry : map.entrySet()) {
-            String name = entry.getValue().getAsString();
-            MAP.put(entry.getKey(), name);
-            InputStream stricter = DKSGBlock.class.getResourceAsStream("/dksgblock/stricters/" + name + ".schem");
-            if (stricter != null) {
-                stricter = new BufferedInputStream(stricter);
-                try {
-                    Path path = esFol.resolve(name + ".schem");
-                    if (!path.toFile().exists())
-                        Files.write(path, DKSGUtil.streamToByteArray(stricter));
-                } catch (IOException e) {
-                    e.printStackTrace();
+        {
+            MAP.clear();
+            InputStream stream = new BufferedInputStream(DKSGBlock.class.getResourceAsStream("/dksgblock/map.json"));
+            JsonObject map = GSON.fromJson(new InputStreamReader(stream), JsonObject.class);
+            Path esFol = JavaPlugin.getPlugin(EasyStructure.class).getDataFolder().toPath().resolve("schematics");
+            esFol.toFile().mkdirs();
+            for (Map.Entry<String, JsonElement> entry : map.entrySet()) {
+                String name = entry.getValue().getAsString();
+                MAP.put(entry.getKey(), name);
+                InputStream stricter = DKSGBlock.class.getResourceAsStream("/dksgblock/stricters/" + name + ".schem");
+                if (stricter != null) {
+                    stricter = new BufferedInputStream(stricter);
+                    try {
+                        Path path = esFol.resolve(name + ".schem");
+                        if (!path.toFile().exists())
+                            Files.write(path, DKSGUtil.streamToByteArray(stricter));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    getLogger().log(Level.WARNING, "Not find file: " + name);
                 }
-            } else {
-                getLogger().log(Level.WARNING, "Not find file: " + name);
+            }
+        }
+        {
+            RESOURCE_ID.clear();
+            InputStream stream = new BufferedInputStream(DKSGBlock.class.getResourceAsStream("/dksgblock/resource_ids.json"));
+            JsonObject ids = GSON.fromJson(new InputStreamReader(stream), JsonObject.class);
+            for (Map.Entry<String, JsonElement> entry : ids.entrySet()) {
+                RESOURCE_ID.put(entry.getKey(), entry.getValue().getAsInt());
             }
         }
 
